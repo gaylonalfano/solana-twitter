@@ -64,6 +64,8 @@ pub struct SendTweetInstruction<'info> {
 }
 
 // 1. Define the structure of Tweet account
+// NOTE We could consider adding another account e.g. UserProfile that
+// our 'program' object could also create and then fetch
 #[account]
 pub struct Tweet {
     pub author: Pubkey,
