@@ -2,6 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { SolanaTwitter } from "../target/types/solana_twitter";
 import * as assert from "assert";
+import * as bs58 from "bs58";
 
 describe("solana-twitter", () => {
   // Configure the client to use the local cluster.
@@ -21,7 +22,7 @@ describe("solana-twitter", () => {
 
     // NOTE The rpc object exposes an API matching our program's instructions
     // NOTE The LAST arg for any program.rpc method is always the CONTEXT!
-    await program.rpc.sendTweet("golf", "Did you see TW today?", {
+    await program.rpc.sendTweet("nft", "Did you see TW today?", {
       // Q: Where do we define 'accounts' and 'signers' props? On Anchor Context Type?
       accounts: {
         // Accounts here e.g. tweet, author, and system_program
@@ -56,7 +57,7 @@ describe("solana-twitter", () => {
       createdTweetAccount.author.toBase58(),
       program.provider.wallet.publicKey.toBase58()
     );
-    assert.equal(createdTweetAccount.topic, "golf");
+    assert.equal(createdTweetAccount.topic, "nft");
     assert.equal(createdTweetAccount.content, "Did you see TW today?");
     assert.ok(createdTweetAccount.timestamp);
   });
@@ -106,7 +107,7 @@ describe("solana-twitter", () => {
 
     // Call the "SendTweetInstruction" instruction on behalf of this other user
     const tweet = anchor.web3.Keypair.generate();
-    await program.rpc.sendTweet("testing", "Gonna work?", {
+    await program.rpc.sendTweet("nft", "Gonna work?", {
       accounts: {
         tweet: tweet.publicKey,
         author: otherUser.publicKey,
@@ -127,7 +128,7 @@ describe("solana-twitter", () => {
       createdTweetAccount.author.toBase58(),
       otherUser.publicKey.toBase58()
     );
-    assert.equal(createdTweetAccount.topic, "testing");
+    assert.equal(createdTweetAccount.topic, "nft");
     assert.equal(createdTweetAccount.content, "Gonna work?");
     assert.ok(createdTweetAccount.timestamp);
   });
@@ -182,6 +183,71 @@ describe("solana-twitter", () => {
 
     assert.fail(
       "The instruction should have failed with a 281-character content."
+    );
+  });
+
+  it("can fetch all tweets accounts", async () => {
+    const tweetAccounts = await program.account.tweet.all();
+    // NOTE Need to use solana-test-validator --reset to ensure
+    // we have a clean ledger to work with.
+    // NOTE The number of accounts is due to the other tests
+    assert.equal(tweetAccounts.length, 3);
+  });
+
+  it("can filter tweets by author", async () => {
+    // https://lorisleiva.com/create-a-solana-dapp-from-scratch/fetching-tweets-from-the-program
+    const authorPublicKey = program.provider.wallet.publicKey;
+    // NOTE We have dataSize and memcmp filters
+    const tweetAccounts = await program.account.tweet.all([
+      {
+        memcmp: {
+          // offset = where in the data the author's pubkey is stored
+          // NOTE We know this value when we computed size of Tweet account.
+          // Recall that whenever a new account is created, a DISCRIMATOR of
+          // exactly 8 bytes will be added to beginning of data. See episode 3.
+          offset: 8, // Discrimator
+          // bytes = base-58 encoded array of bytes (e.g., publicKey.toBase58(), bs58.encode(Buffer.from('nft')) )
+          bytes: authorPublicKey.toBase58(),
+        },
+      },
+    ]);
+
+    // NOTE Need to use solana-test-validator --reset to ensure
+    // we have a clean ledger to work with.
+    // NOTE The number of accounts is due to the other tests
+    assert.equal(tweetAccounts.length, 2);
+    // Ensure that all Tweets are from this wallet
+    assert.ok(
+      tweetAccounts.every((tweetAccount) => {
+        return (
+          tweetAccount.account.author.toBase58() === authorPublicKey.toBase58()
+        );
+      })
+    );
+  });
+
+  it("can filter tweets by topic", async () => {
+    const topic = "nft";
+    const tweetAccounts = await program.account.tweet.all([
+      {
+        memcmp: {
+          offset:
+            8 + // Discrimator
+            32 + // Author public key
+            8 + // Timestamp
+            4, // Topic string prefix
+          // bytes = base-58 encoded array of bytes (e.g., publicKey.toBase58(), bs58.encode(buffer) )
+          // NOTE Need to import bs58
+          bytes: bs58.encode(Buffer.from(topic)),
+        },
+      },
+    ]);
+
+    assert.equal(tweetAccounts.length, 2);
+    assert.ok(
+      tweetAccounts.every((tweetAccount) => {
+        return tweetAccount.account.topic === topic;
+      })
     );
   });
 });
