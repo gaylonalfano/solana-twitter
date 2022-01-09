@@ -10,6 +10,8 @@ describe("solana-twitter", () => {
   anchor.setProvider(anchor.Provider.env());
 
   // Uses the registered Provider to create a new Program object
+  // NOTE This 'program' is accessed in frontend via:
+  // new Program(idl, new PublicKey(idl.metadata.address), provider)
   const program = anchor.workspace.SolanaTwitter as Program<SolanaTwitter>;
 
   it("can send a new tweet", async () => {
@@ -29,8 +31,6 @@ describe("solana-twitter", () => {
         tweet: tweet.publicKey,
         author: program.provider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
-        // author,
-        // systemProgram,
       },
       signers: [
         // Key pairs of signers here...

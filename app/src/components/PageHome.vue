@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import { fetchTweets } from '@/api'
+import {ref} from 'vue'
+import {fetchTweets} from '@/api'
 import TweetForm from '@/components/TweetForm'
 import TweetList from '@/components/TweetList'
 

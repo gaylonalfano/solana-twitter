@@ -7,6 +7,7 @@ import {useWorkspace} from "@/composables";
 
 const tweets = ref([])
 const loading = ref(true)
+// Use Anchor Workspace object to access 'wallet'
 const {wallet} = useWorkspace();
 
 watchEffect(() => {
@@ -19,7 +20,6 @@ const addTweet = tweet => tweets.value.push(tweet)
 </script>
 
 <template>
-    <!-- TODO: Check connected wallet -->
     <!-- NOTE Can now check our 'wallet' var from useWorkspace() -->
     <div v-if="wallet" class="border-b px-8 py-4 bg-gray-50">{{wallet.publicKey.toBase58()}}</div>
     <tweet-form @added="addTweet"></tweet-form>

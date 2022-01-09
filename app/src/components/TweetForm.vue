@@ -29,7 +29,7 @@ const characterLimitColour = computed(() => {
 })
 
 // Permissions.
-// const connected = ref(true) // TODO: Check connected wallet.
+// TODO: Check connected wallet.
 const {connected} = useWallet();
 const canTweet = computed(() => content.value && characterLimit.value > 0)
 
