@@ -7,6 +7,7 @@ import WorkspaceProvider from '@/components/WorkspaceProvider';
 
 // NOTE Add the WorkspaceProvider after WalletProvider so that
 // we can access the workspace data from any component in app
+// i.e., we have access to: wallet, provider, connection, program
 
 const route = useRoute()
 

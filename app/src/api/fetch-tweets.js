@@ -1,28 +1,12 @@
-export const fetchTweets = async () => {
-    return [
-        {
-            topic: 'solana',
-            content: 'gm',
-            author_display: 'B1Af..wtRN',
-            created_at: 'Nov 26, 2021 1:03PM',
-            created_ago: 'just now',
-            timestamp: 1637932864,
-        },
-        {
-            topic: 'no-code',
-            content: 'Octohook.com is awesome!',
-            author_display: 'BnE7..NRGF',
-            created_at: 'Nov 26, 2021 1:03PM',
-            created_ago: '2 hours ago',
-            timestamp: 1637932864,
-        },
-        {
-            topic: '',
-            content: 'Just setting up my Solana twttr',
-            author_display: 'B1Af..wtRN',
-            created_at: 'Nov 26, 2021 1:03PM',
-            created_ago: '2 days ago',
-            timestamp: 1637932864,
-        },
-    ]
+import { Tweet } from "@/models";
+// NOTE Pass entire 'workspace' and destructure 'program' from it
+export async function fetchTweets({ program }) {
+  // NOTE The 'program' can have many different account types
+  // which are accessed via program.account.X
+  // NOTE 'program' is reactive and wrapped in Ref, so need .value
+  const tweets = await program.value.account.tweet.all();
+  // NOTE The program.value.account.tweet returns an object containing
+  // a publicKey and account object, which is what our Tweet model constructor
+  // needs to create a new Tweet object.
+  return tweets.map((tweet) => new Tweet(tweet.publicKey, tweet.account));
 }
