@@ -1,17 +1,20 @@
 <script setup>
 import {ref, watchEffect} from 'vue'
-import {fetchTweets} from '@/api'
+import {fetchTweets, authorFilter} from '@/api'
 import TweetForm from '@/components/TweetForm'
 import TweetList from '@/components/TweetList'
 import {useWorkspace} from "@/composables";
 
 const tweets = ref([])
 const loading = ref(true)
+const workspace = useWorkspace();
 // Use Anchor Workspace object to access 'wallet'
-const {wallet} = useWorkspace();
+const {wallet} = workspace;
 
 watchEffect(() => {
-    fetchTweets()
+    // Confirm we have a valid CONNECTED wallet and get its address (ie. author publicKey)
+    if (!wallet.value) return
+    fetchTweets(workspace, [authorFilter(wallet.value.publicKey.toBase58())])
         .then(fetchedTweets => tweets.value = fetchedTweets)
         .finally(() => loading.value = false)
 })

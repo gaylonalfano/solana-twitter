@@ -12,7 +12,7 @@ const loading = ref(true)
 fetchTweets(useWorkspace())
     .then(fetchedTweets => {
         tweets.value = fetchedTweets
-        console.log(tweets.value)
+        // console.log(tweets.value)
     })
     .finally(() => loading.value = false)
 
